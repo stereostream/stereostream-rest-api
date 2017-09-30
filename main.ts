@@ -4,8 +4,9 @@ import { get_models_routes, IModelRoute, populateModelRoutes, raise } from 'node
 import { IormMwConfig, IOrmsOut, ormMw } from 'orm-mw';
 import { Server } from 'restify';
 import { IRoutesMergerConfig, routesMerger, TApp } from 'routes-merger';
-import { AccessToken } from './api/auth/models';
+import * as switchboard from 'rtc-switchboard';
 
+import { AccessToken } from './api/auth/models';
 import { AuthTestSDK } from './test/api/auth/auth_test_sdk';
 import { user_mocks } from './test/api/user/user_mocks';
 import { IUserBase } from './api/user/models.d';
@@ -21,6 +22,9 @@ process.env['NO_DEBUG'] || logger.info(Object.keys(process.env).sort().map(k => 
 
 export const all_models_and_routes: Map<string, any> = populateModelRoutes(__dirname);
 export const all_models_and_routes_as_mr: IModelRoute = get_models_routes(all_models_and_routes);
+
+
+export let swbord;
 
 export const setupOrmApp = (models_and_routes: Map<string, any>,
                             mergeOrmMw: Partial<IormMwConfig>,
@@ -38,13 +42,20 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             skip_start_app: false,
             skip_app_logging: false,
             listen_port: process.env.PORT || 3000,
-            with_app,
+            with_app: (app: Server) => {
+                swbord = switchboard(app);
+                // app.get('/rtc.io/primus.js', switchboard.library());
+                return with_app(app);
+            },
             logger,
             onServerStart: (uri: string, app: Server, next) => {
                 AccessToken.reset();
 
                 const authSdk = new AuthTestSDK(app);
                 const default_user: IUserBase = user_mocks.successes[0];
+                swbord.on('data', (data, peerId, spark) =>
+                    logger.info({ peer: peerId }, `received: ${data}`)
+                );
 
                 series([
                         callb => authSdk.unregister_all([default_user], (err: Error & {status: number}) =>
