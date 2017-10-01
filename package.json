@@ -1,6 +1,6 @@
 {
   "name": "stereostream-rest-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sample REST API scaffold built on Node.JS in TypeScript with restify and waterline (with TypeORM support).",
   "main": "main.js",
   "author": "Samuel Marks <samuel@offscale.io>",
@@ -24,6 +24,7 @@
     "mathjs": "^3.16.3",
     "nodejs-utils": "https://api.github.com/repos/SamuelMarks/nodejs-utils-dist/tarball",
     "orm-mw": "https://api.github.com/repos/SamuelMarks/orm-mw-dist/tarball",
+    "pg": "^7.3.0",
     "redis": "^2.8.0",
     "restify": "^6.0.1",
     "restify-errors": "^5.0.0",
@@ -31,6 +32,7 @@
     "routes-merger": "https://api.github.com/repos/SamuelMarks/routes-merger-dist/tarball",
     "rtc-switchboard": "^3.2.0",
     "tv4": "^1.3.0",
+    "typeorm": "0.1.0-alpha.50",
     "uuid": "^3.1.0",
     "waterline": "https://api.github.com/repos/SamuelMarks/waterline/tarball/c91bdf46d400180ae7e800f684f8fb44f8fed9a5",
     "waterline-postgresql": "^0.14.8"

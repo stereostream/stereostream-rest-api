@@ -46,6 +46,7 @@ describe('Room::routes', () => {
                 ),
                 (_app: Server, orms_out: IOrmsOut, cb) => {
                     _orms_out.orms_out = orms_out;
+                    console.info('orms_out =', orms_out, ';');
                     mocks = room_mocks(user_mocks_subset);
 
                     auth_sdk = new AuthTestSDK(_app);

@@ -22,7 +22,7 @@ process.env['NO_DEBUG'] || logger.info(Object.keys(process.env).sort().map(k => 
 
 export const all_models_and_routes: Map<string, any> = populateModelRoutes(__dirname);
 export const all_models_and_routes_as_mr: IModelRoute = get_models_routes(all_models_and_routes);
-
+console.info('all_models_and_routes_as_mr =', all_models_and_routes_as_mr, ';');
 
 export let swbord;
 
@@ -42,20 +42,21 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             skip_start_app: false,
             skip_app_logging: false,
             listen_port: process.env.PORT || 3000,
-            with_app: (app: Server) => {
+            with_app,
+            /*with_app: (app: Server) => {
                 swbord = switchboard(app);
                 // app.get('/rtc.io/primus.js', switchboard.library());
                 return with_app(app);
-            },
+            },*/
             logger,
             onServerStart: (uri: string, app: Server, next) => {
                 AccessToken.reset();
 
                 const authSdk = new AuthTestSDK(app);
                 const default_user: IUserBase = user_mocks.successes[0];
-                swbord.on('data', (data, peerId, spark) =>
+                /*swbord.on('data', (data, peerId, spark) =>
                     logger.info({ peer: peerId }, `received: ${data}`)
-                );
+                );*/
 
                 series([
                         callb => authSdk.unregister_all([default_user], (err: Error & {status: number}) =>
