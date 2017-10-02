@@ -4,7 +4,10 @@ import { get_models_routes, IModelRoute, populateModelRoutes, raise } from 'node
 import { IormMwConfig, IOrmsOut, ormMw } from 'orm-mw';
 import { Server } from 'restify';
 import { IRoutesMergerConfig, routesMerger, TApp } from 'routes-merger';
-import * as switchboard from 'rtc-switchboard';
+import * as socketio from 'socket.io';
+import { writeFile } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 
 import { AccessToken } from './api/auth/models';
 import { AuthTestSDK } from './test/api/auth/auth_test_sdk';
@@ -16,15 +19,15 @@ import { getOrmMwConfig } from './config';
 /* tslint:disable:no-var-requires */
 export const package_ = Object.freeze(require('./package'));
 export const logger = createLogger({ name: 'main' });
+export const chat_logger = createLogger({ name: 'chat' });
 
 /* tslint:disable:no-unused-expression */
 process.env['NO_DEBUG'] || logger.info(Object.keys(process.env).sort().map(k => ({ [k]: process.env[k] })));
 
 export const all_models_and_routes: Map<string, any> = populateModelRoutes(__dirname);
 export const all_models_and_routes_as_mr: IModelRoute = get_models_routes(all_models_and_routes);
-console.info('all_models_and_routes_as_mr =', all_models_and_routes_as_mr, ';');
 
-export let swbord;
+export let io: any /*socketio*/;
 
 export const setupOrmApp = (models_and_routes: Map<string, any>,
                             mergeOrmMw: Partial<IormMwConfig>,
@@ -42,21 +45,39 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             skip_start_app: false,
             skip_app_logging: false,
             listen_port: process.env.PORT || 3000,
-            with_app,
-            /*with_app: (app: Server) => {
-                swbord = switchboard(app);
-                // app.get('/rtc.io/primus.js', switchboard.library());
+            createServerArgs: { socketio: true },
+            with_app: (app: Server) => {
+                io = socketio.listen(app);
                 return with_app(app);
-            },*/
+            },
             logger,
             onServerStart: (uri: string, app: Server, next) => {
                 AccessToken.reset();
+                io.on('connection', socket => {
+                    chat_logger.info(`${new Date().toISOString()}\tuser\tconnected`);
+                    socket.on('disconnect', () => {
+                        chat_logger.info(`${new Date().toISOString()}\tuser\tdisconnected`);
+                    });
+                    socket.on('chat message', msg => {
+                        const ft = msg == null || !msg ? -1 : msg.indexOf('\t');
+                        if (ft < 0) return;
+                        const [token, content] = msg.split('\t');
+                        AccessToken
+                            .get(orms_out.redis.connection)
+                            .findOne(token, (err, user_id) => {
+                                const m = `${new Date().toISOString()}\t${user_id}\t${content}`;
+                                err == null && user_id != null && io.emit(
+                                    'chat message', m
+                                ) && writeFile(join(homedir(), 'repos', 'stereostream', 'chats.log'), m,
+                                    { encoding: 'utf8', flag: 'a' }, err => {
+                                        err == null || chat_logger.error(err);
+                                    });
+                            });
+                    });
+                });
 
                 const authSdk = new AuthTestSDK(app);
                 const default_user: IUserBase = user_mocks.successes[0];
-                /*swbord.on('data', (data, peerId, spark) =>
-                    logger.info({ peer: peerId }, `received: ${data}`)
-                );*/
 
                 series([
                         callb => authSdk.unregister_all([default_user], (err: Error & {status: number}) =>
