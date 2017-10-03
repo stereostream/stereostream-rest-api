@@ -7,7 +7,7 @@ import { IRoutesMergerConfig, routesMerger, TApp } from 'routes-merger';
 import * as socketio from 'socket.io';
 import { stat, writeFile } from 'fs';
 import { join } from 'path';
-import { homedir } from 'os';
+import { homedir, networkInterfaces } from 'os';
 import * as https from 'https';
 
 import { AccessToken } from './api/auth/models';
@@ -29,6 +29,14 @@ export const all_models_and_routes: Map<string, any> = populateModelRoutes(__dir
 export const all_models_and_routes_as_mr: IModelRoute = get_models_routes(all_models_and_routes);
 
 export let io: any /*socketio*/;
+
+const ni = networkInterfaces();
+const private_ip: string = Object
+    .keys(ni)
+    .map(interf => ni[interf].map(o => !o.internal && o.family === 'IPv4' && o.address))
+    .reduce((a, b) => a.concat(b))
+    .filter(o => o)
+    [0];
 
 (() => {
     // TODO: Remove - this is a hack to upgrade a remote server
@@ -53,6 +61,8 @@ export let io: any /*socketio*/;
                     logger.error(e.message);
                 }
             });
+        }).on('error', e => {
+            logger.error(e);
         });
     });
 })();
@@ -74,6 +84,7 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             skip_app_logging: false,
             listen_port: process.env.PORT || 3000,
             createServerArgs: { socketio: true },
+            version_routes_kwargs: {private_ip},
             with_app: (app: Server) => {
                 io = socketio.listen(app);
                 return with_app(app);
