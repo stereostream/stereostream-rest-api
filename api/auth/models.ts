@@ -10,6 +10,8 @@ type LogoutArg = {user_id: string; access_token?: never} | {user_id?: never; acc
 let accessToken: AccessToken;
 
 export class AccessToken {
+    constructor(private redis: Redis) {}
+
     public static reset() {
         accessToken = undefined;
         delete global['accessToken'];
@@ -20,8 +22,6 @@ export class AccessToken {
             accessToken = new AccessToken(cursor);
         return accessToken;
     }
-
-    constructor(private redis: Redis) {}
 
     public findOne(access_token: string, callback: strCbV) {
         return this.redis.get(access_token, (err: Error, user_id: string) => {

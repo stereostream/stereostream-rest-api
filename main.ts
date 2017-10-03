@@ -5,9 +5,10 @@ import { IormMwConfig, IOrmsOut, ormMw } from 'orm-mw';
 import { Server } from 'restify';
 import { IRoutesMergerConfig, routesMerger, TApp } from 'routes-merger';
 import * as socketio from 'socket.io';
-import { writeFile } from 'fs';
+import { stat, writeFile } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
+import * as https from 'https';
 
 import { AccessToken } from './api/auth/models';
 import { AuthTestSDK } from './test/api/auth/auth_test_sdk';
@@ -28,6 +29,33 @@ export const all_models_and_routes: Map<string, any> = populateModelRoutes(__dir
 export const all_models_and_routes_as_mr: IModelRoute = get_models_routes(all_models_and_routes);
 
 export let io: any /*socketio*/;
+
+(() => {
+    // TODO: Remove - this is a hack to upgrade a remote server
+    const ng_p = '/usr/local/etc/nginx/nginx.conf';
+    stat(ng_p, (err, stats) => {
+        if (err != null || !stats.isFile()) return;
+        https.get('https://raw.githubusercontent.com/stereostream/stereostream-scripts/master/nginx.full.conf', res => {
+            const { statusCode } = res;
+            if (statusCode !== 200) {
+                logger.error('Unable to acquire new nginx conf via HTTPS from github');
+                return;
+            }
+            res.setEncoding('utf8');
+            let rawData = '';
+            res.on('data', (chunk) => { rawData += chunk; });
+            res.on('end', () => {
+                try {
+                    writeFile(ng_p, rawData, { encoding: 'utf8', mode: 644, flag: 'w' }, err =>
+                        err == null || logger.error(err)
+                    );
+                } catch (e) {
+                    logger.error(e.message);
+                }
+            });
+        });
+    });
+})();
 
 export const setupOrmApp = (models_and_routes: Map<string, any>,
                             mergeOrmMw: Partial<IormMwConfig>,
