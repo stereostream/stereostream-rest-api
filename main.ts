@@ -61,14 +61,15 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                     socket.on('chat message', msg => {
                         const ft = msg == null || !msg ? -1 : msg.indexOf('\t');
                         if (ft < 0) return;
-                        const [token, content] = msg.split('\t');
+                        const token = msg.slice(0, ft);
+                        const content = msg.slice(ft + 1);
                         AccessToken
                             .get(orms_out.redis.connection)
                             .findOne(token, (err, user_id) => {
                                 const m = `${new Date().toISOString()}\t${user_id}\t${content}`;
                                 err == null && user_id != null && io.emit(
                                     'chat message', m
-                                ) && writeFile(join(homedir(), 'repos', 'stereostream', 'chats.log'), m,
+                                ) && writeFile(join(homedir(), 'repos', 'stereostream', 'chats.log'), `${m}\n`,
                                     { encoding: 'utf8', flag: 'a' }, err => {
                                         err == null || chat_logger.error(err);
                                     });
