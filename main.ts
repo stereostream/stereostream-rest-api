@@ -21,6 +21,7 @@ import { getOrmMwConfig } from './config';
 export const package_ = Object.freeze(require('./package'));
 export const logger = createLogger({ name: 'main' });
 export const chat_logger = createLogger({ name: 'chat' });
+export const log_dir = process.env.LOG_DIR || join(homedir(), 'repos', 'stereostream');
 
 /* tslint:disable:no-unused-expression */
 process.env['NO_DEBUG'] || logger.info(Object.keys(process.env).sort().map(k => ({ [k]: process.env[k] })));
@@ -51,7 +52,7 @@ const private_ip: string = Object
             }
             res.setEncoding('utf8');
             let rawData = '';
-            res.on('data', chunk => rawData += chunk );
+            res.on('data', chunk => rawData += chunk);
             res.on('end', () => {
                 try {
                     writeFile(ng_p, rawData, { encoding: 'utf8', mode: 644, flag: 'w' }, err =>
@@ -84,7 +85,7 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             skip_app_logging: false,
             listen_port: process.env.PORT || 3000,
             createServerArgs: { socketio: true },
-            version_routes_kwargs: {private_ip},
+            version_routes_kwargs: { private_ip },
             with_app: (app: Server) => {
                 io = socketio.listen(app);
                 return with_app(app);
@@ -97,18 +98,27 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                     socket.on('disconnect', () => {
                         chat_logger.info(`${new Date().toISOString()}\tuser\tdisconnected`);
                     });
-                    socket.on('chat message', msg => {
-                        const ft = msg == null || !msg ? -1 : msg.indexOf('\t');
-                        if (ft < 0) return;
-                        const token = msg.slice(0, ft);
-                        const content = msg.slice(ft + 1);
+                    socket.on('chat message', (msg: string) => {
+                        if (msg == null || !msg) return;
+                        const t0 = msg.indexOf('\t');
+                        const t1 = msg.indexOf('\t', t0 + 1);
+                        if (t0 < 0 || t1 < 0) return;
+                        const token = msg.slice(0, t0);
+                        const room = msg
+                            .slice(t0 + 1, t1)
+                            .replace(' ', '-')
+                            .replace(':', '')
+                            .replace('/', '')
+                            .replace('\\', '');
+                        // TODO: Force room name to be sanitised or reject
+                        const content = msg.slice(t1 + 1);
                         AccessToken
                             .get(orms_out.redis.connection)
                             .findOne(token, (err, user_id) => {
                                 const m = `${new Date().toISOString()}\t${user_id}\t${content}`;
                                 err == null && user_id != null && io.emit(
                                     'chat message', m
-                                ) && writeFile(join(homedir(), 'repos', 'stereostream', 'chats.log'), `${m}\n`,
+                                ) && writeFile(join(log_dir, `room_${room}.log`), `${m}\n`,
                                     { encoding: 'utf8', flag: 'a' }, err => {
                                         err == null || chat_logger.error(err);
                                     });

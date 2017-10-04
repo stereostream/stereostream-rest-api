@@ -4,13 +4,18 @@ import { IOrmReq } from 'orm-mw';
 import * as restify from 'restify';
 import { has_body, mk_valid_body_mw_ignore } from 'restify-validators';
 import { JsonSchema } from 'tv4';
+import { join } from 'path';
+import { readFile } from 'fs';
 
-import { has_auth } from './../auth/middleware';
+import { log_dir } from '../../main';
+import { has_auth } from '../auth/middleware';
 import { name_owner_split_mw } from './middleware';
 import { Room } from './models';
 
 /* tslint:disable:no-var-requires */
 const room_schema: JsonSchema = require('./../../test/api/room/schema');
+
+const zip = (a0: any[], a1: any[]) => a0.map((x, i) => [x, a1[i]]);
 
 export const create = (app: restify.Server, namespace: string = ''): void => {
     app.post(`${namespace}/:name`, has_auth(),
@@ -34,13 +39,24 @@ export const create = (app: restify.Server, namespace: string = ''): void => {
 export const read = (app: restify.Server, namespace: string = ''): void => {
     app.get(`${namespace}/:name`, has_auth(),
         (req: restify.Request & IOrmReq, res: restify.Response, next: restify.Next) => {
+            const header = ['date', 'user', 'content'];
             req.getOrm().typeorm.connection
                 .getRepository(Room)
                 .findOne({ name: req.params.name })
                 .then((room: Room) => {
                     if (room == null) return next(new NotFoundError('Room'));
-                    res.json(200, room);
-                    return next();
+                    readFile(join(log_dir, `room_${room.name}.log`), { encoding: 'utf8', flag: 'r' }, (err, log) => {
+                        res.json(200, Object.assign(room, {
+                            log: err != null || log == null || !log ? null
+                                : log
+                                    .split('\n')
+                                    .map(l => l.split('\t'))
+                                    .map(a => a.reduce((o, v, i) => v != null ?
+                                        Object.assign(o, { [header[i]]: v }) : o, {}))
+                                    .filter(o => o['date'])
+                        }));
+                        return next();
+                    });
                 })
                 .catch(restCatch(req, res, next));
         }
