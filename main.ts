@@ -51,7 +51,7 @@ const private_ip: string = Object
             }
             res.setEncoding('utf8');
             let rawData = '';
-            res.on('data', (chunk) => { rawData += chunk; });
+            res.on('data', chunk => rawData += chunk );
             res.on('end', () => {
                 try {
                     writeFile(ng_p, rawData, { encoding: 'utf8', mode: 644, flag: 'w' }, err =>

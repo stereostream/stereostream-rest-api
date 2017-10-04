@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 export const _dependencies = ['user'];
 
@@ -7,6 +7,6 @@ export class Room {
     @PrimaryColumn({ type: 'varchar' })
     name: string;
 
-    @PrimaryColumn({ type: 'varchar' })
+    @Column({ type: 'varchar' })
     owner: string;
 }

@@ -25,12 +25,11 @@ export class RoomTestSDK {
         if (access_token == null) return callback(new TypeError('`access_token` argument to `create` must be defined'));
         else if (room == null) return callback(new TypeError('`room` argument to `create` must be defined'));
 
-        expect(room_routes.create).to.be.an.instanceOf(Function);
+        expect(room_route.create).to.be.an.instanceOf(Function);
         supertest(this.app)
-            .post('/api/room')
+            .post(`/api/room/${room.name}`)
             .set('Connection', 'keep-alive')
             .set('X-Access-Token', access_token)
-            .send(room)
             .expect('Content-Type', /json/)
             .end((err, res: Response) => {
                 if (err != null) return superEndCb(callback)(err);
@@ -85,6 +84,7 @@ export class RoomTestSDK {
         else if (room == null) return callback(new TypeError('`room` argument to `getAll` must be defined'));
 
         expect(room_route.read).to.be.an.instanceOf(Function);
+        console.info('`/api/room/${room.name}` =', `/api/room/${room.name}`)
         supertest(this.app)
             .get(`/api/room/${room.name}`)
             .set('Connection', 'keep-alive')

@@ -2,6 +2,7 @@ import * as Logger from 'bunyan';
 import { WaterlineError } from 'custom-restify-errors';
 import { IormMwConfig, IOrmsOut, RequestHandler } from 'orm-mw';
 import { IRoutesMergerConfig } from 'routes-merger';
+import 'reflect-metadata';
 import { ConfigOptions, WLError } from 'waterline';
 import * as waterline_postgres from 'waterline-postgresql';
 import { uri_to_config } from 'nodejs-utils';
@@ -38,6 +39,7 @@ export const typeorm_config: PostgresConnectionOptions = Object.freeze(
         {
             type: 'postgres',
             autoSchemaSync: true,
+            synchronize: true,
             logging: { logQueries: true }
         }
     ) as any as PostgresConnectionOptions
