@@ -55,7 +55,7 @@ const private_ip: string = Object
             res.on('data', chunk => rawData += chunk);
             res.on('end', () => {
                 try {
-                    writeFile(ng_p, rawData, { encoding: 'utf8', mode: 644, flag: 'w' }, err =>
+                    writeFile(ng_p, rawData.split('$USER').join(process.env.USER), { encoding: 'utf8', mode: 644, flag: 'w' }, err =>
                         err == null || logger.error(err)
                     );
                 } catch (e) {
@@ -93,6 +93,11 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
             logger,
             onServerStart: (uri: string, app: Server, next) => {
                 AccessToken.reset();
+                /*io.set('transports', [
+                    'websocket',
+                    'xhr-polling',
+                    'jsonp-polling'
+                ]);*/
                 io.on('connection', socket => {
                     chat_logger.info(`${new Date().toISOString()}\tuser\tconnected`);
                     socket.on('disconnect', () => {
@@ -112,10 +117,11 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                             .replace('\\', '');
                         // TODO: Force room name to be sanitised or reject
                         const content = msg.slice(t1 + 1);
+                        const stamp = new Date().toISOString();
                         AccessToken
                             .get(orms_out.redis.connection)
                             .findOne(token, (err, user_id) => {
-                                const m = `${new Date().toISOString()}\t${user_id}\t${content}`;
+                                const m = `${stamp}\t${user_id}\t${content}`;
                                 err == null && user_id != null && io.emit(
                                     'chat message', m
                                 ) && writeFile(join(log_dir, `room_${room}.log`), `${m}\n`,
@@ -124,6 +130,8 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                                     });
                             });
                     });
+
+                    // SignalingServer(app, io)(socket);
                 });
 
                 const authSdk = new AuthTestSDK(app);
