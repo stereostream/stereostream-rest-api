@@ -1,6 +1,6 @@
 {
   "name": "stereostream-rest-api",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Sample REST API scaffold built on Node.JS in TypeScript with restify and waterline (with TypeORM support).",
   "main": "main.js",
   "author": "Samuel Marks <samuel@offscale.io>",
@@ -39,16 +39,16 @@
     "waterline-postgresql": "^0.14.8"
   },
   "devDependencies": {
-    "@angular/cli": "^1.4.6",
+    "@angular/cli": "^1.4.7",
     "@types/async": "^2.0.44",
     "@types/bunyan": "1.8.3",
     "@types/chai": "^4.0.4",
     "@types/faker": "^4.1.1",
-    "@types/ioredis": "0.0.25",
+    "@types/ioredis": "0.0.26",
     "@types/mathjs": "0.0.35",
     "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.34",
-    "@types/redis": "^2.6.0",
+    "@types/redis": "^2.6.1",
     "@types/restify": "^5.0.5",
     "@types/restify-errors": "^4.3.2",
     "@types/superagent": "^3.5.6",
@@ -58,7 +58,7 @@
     "chai": "^4.1.2",
     "chai-json-schema": "^1.5.0",
     "chai-json-schema-ajv": "^1.0.0",
-    "mocha": "3.5.3",
+    "mocha": "4.0.1",
     "supertest": "^3.0.0",
     "ts-node": "^3.3.0",
     "typescript": "^2.5.3"
