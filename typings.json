@@ -7,8 +7,6 @@
         "nodejs-utils": "github:SamuelMarks/nodejs-utils/nodejs-utils.d.ts#master",
         "orm-mw": "github:SamuelMarks/orm-mw/orm-mw.d.ts#master",
         "restify-validators": "github:SamuelMarks/restify-validators/restify-validators.d.ts",
-        "routes-merger": "github:SamuelMarks/routes-merger/routes-merger.d.ts",
-        "waterline": "github:SamuelMarks/cust_typings/waterline/waterline.d.ts",
-        "waterline-postgresql": "github:SamuelMarks/cust_typings/waterline-postgresql/waterline-postgresql.d.ts"
+        "routes-merger": "github:SamuelMarks/routes-merger/routes-merger.d.ts"
     }
 }

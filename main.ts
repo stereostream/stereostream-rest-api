@@ -4,18 +4,18 @@ import { get_models_routes, IModelRoute, populateModelRoutes, raise } from 'node
 import { IormMwConfig, IOrmsOut, ormMw } from 'orm-mw';
 import { Server } from 'restify';
 import { IRoutesMergerConfig, routesMerger, TApp } from 'routes-merger';
-import * as socketio from 'socket.io';
-import { stat, writeFile } from 'fs';
-import { join } from 'path';
 import { homedir, networkInterfaces } from 'os';
-import * as https from 'https';
+import { join } from 'path';
+import { writeFile } from 'fs';
+
+import * as socketio from 'socket.io';
 
 import { AccessToken } from './api/auth/models';
-import { AuthTestSDK } from './test/api/auth/auth_test_sdk';
-import { user_mocks } from './test/api/user/user_mocks';
-import { IUserBase } from './api/user/models.d';
+import { User } from './api/user/models';
 import * as config from './config';
 import { getOrmMwConfig } from './config';
+import { AuthTestSDK } from './test/api/auth/auth_test_sdk';
+
 
 /* tslint:disable:no-var-requires */
 export const package_ = Object.freeze(require('./package'));
@@ -38,35 +38,6 @@ const private_ip: string = Object
     .reduce((a, b) => a.concat(b))
     .filter(o => o)
     [0];
-
-(() => {
-    // TODO: Remove - this is a hack to upgrade a remote server
-    const ng_p = '/usr/local/etc/nginx/nginx.conf';
-    stat(ng_p, (err, stats) => {
-        if (err != null || !stats.isFile()) return;
-        https.get('https://raw.githubusercontent.com/stereostream/stereostream-scripts/master/nginx.full.conf', res => {
-            const { statusCode } = res;
-            if (statusCode !== 200) {
-                logger.error('Unable to acquire new nginx conf via HTTPS from github');
-                return;
-            }
-            res.setEncoding('utf8');
-            let rawData = '';
-            res.on('data', chunk => rawData += chunk);
-            res.on('end', () => {
-                try {
-                    writeFile(ng_p, rawData.split('$USER').join(process.env.USER), { encoding: 'utf8', mode: 644, flag: 'w' }, err =>
-                        err == null || logger.error(err)
-                    );
-                } catch (e) {
-                    logger.error(e.message);
-                }
-            });
-        }).on('error', e => {
-            logger.error(e);
-        });
-    });
-})();
 
 export const setupOrmApp = (models_and_routes: Map<string, any>,
                             mergeOrmMw: Partial<IormMwConfig>,
@@ -135,13 +106,17 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                 });
 
                 const authSdk = new AuthTestSDK(app);
-                const default_user: IUserBase = user_mocks.successes[0];
+                const admin_user: User = {
+                    email: process.env.DEFAULT_ADMIN_EMAIL || 'foo',
+                    password: process.env.DEFAULT_ADMIN_PASSWORD || 'bar',
+                    roles: ['registered', 'login', 'admin']
+                };
 
                 series([
-                        callb => authSdk.unregister_all([default_user], (err: Error & {status: number}) =>
+                        callb => authSdk.unregister_all([admin_user], (err: Error & {status: number}) =>
                             callb(err != null && err.status !== 404 ? err : void 0,
-                                'removed default user; next: adding')),
-                        callb => authSdk.register_login(default_user, callb),
+                                'removed default admin user; next: adding')),
+                        callb => authSdk.register_login(admin_user, callb),
                         callb => logger.info(`${app.name} listening from ${app.url}`) || callb(void 0)
                     ], (e: Error) => e == null ? next(void 0, app, orms_out) : raise(e)
                 );

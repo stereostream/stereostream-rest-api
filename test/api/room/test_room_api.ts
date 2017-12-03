@@ -7,15 +7,14 @@ import { Server } from 'restify';
 
 import { AccessToken } from '../../../api/auth/models';
 import { IRoom } from '../../../api/room/models.d';
-import { IUserBase } from '../../../api/user/models.d';
 import { _orms_out } from '../../../config';
 import { all_models_and_routes_as_mr, setupOrmApp } from '../../../main';
 import { create_and_auth_users } from '../../shared_tests';
 import { AuthTestSDK } from '../auth/auth_test_sdk';
-import { IAuthSdk } from '../auth/auth_test_sdk.d';
 import { user_mocks } from '../user/user_mocks';
 import { room_mocks } from './room_mocks';
 import { RoomTestSDK } from './room_test_sdk';
+import { User } from '../../../api/user/models';
 
 const models_and_routes: IModelRoute = {
     user: all_models_and_routes_as_mr['user'],
@@ -24,14 +23,14 @@ const models_and_routes: IModelRoute = {
 };
 
 process.env['NO_SAMPLE_DATA'] = 'true';
-export const user_mocks_subset: IUserBase[] = user_mocks.successes.slice(20, 30);
+export const user_mocks_subset: User[] = user_mocks.successes.slice(20, 30);
 
 const tapp_name = `test::${basename(__dirname)}`;
 const logger = createLogger({ name: tapp_name });
 
 describe('Room::routes', () => {
     let sdk: RoomTestSDK;
-    let auth_sdk: IAuthSdk;
+    let auth_sdk: AuthTestSDK;
 
     const mocks: {successes: IRoom[], failures: Array<{}>} = room_mocks;
 
@@ -58,7 +57,6 @@ describe('Room::routes', () => {
         )
     );
 
-    // Deregister database adapter waterline_c
     after('unregister all users', done => auth_sdk.unregister_all(user_mocks_subset, done));
     after('tearDownConnections', done => tearDownConnections(_orms_out.orms_out, done));
 
@@ -83,7 +81,7 @@ describe('Room::routes', () => {
 
     describe('/api/room/:name', () => {
         before('createRoom', done => sdk.create(user_mocks_subset[0].access_token, mocks.successes[2], done));
-        //after('deleteRoom', done => sdk.destroy(user_mocks_subset[0].access_token, mocks.successes[2], done));
+        after('deleteRoom', done => sdk.destroy(user_mocks_subset[0].access_token, mocks.successes[2], done));
 
         it('GET should retrieve room', done =>
             sdk.retrieve(user_mocks_subset[0].access_token, mocks.successes[2], done)
