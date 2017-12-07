@@ -6,11 +6,12 @@ import { has_body, mk_valid_body_mw_ignore } from 'restify-validators';
 import { JsonSchema } from 'tv4';
 import { join } from 'path';
 import { readFile } from 'fs';
-
 import { log_dir } from '../../main';
 import { has_auth } from '../auth/middleware';
 import { name_owner_split_mw } from './middleware';
 import { Room } from './models';
+
+const slugify: (s: string) => string = require('slugify');
 
 /* tslint:disable:no-var-requires */
 const room_schema: JsonSchema = require('./../../test/api/room/schema');
@@ -21,7 +22,7 @@ export const create = (app: restify.Server, namespace: string = ''): void => {
     app.post(`${namespace}/:name`, has_auth(),
         (req: restify.Request & IOrmReq, res: restify.Response, next: restify.Next) => {
             const room = new Room();
-            room.name = req.params.name;
+            room.name = slugify(req.params.name.replace('_', '-'));
             room.owner = req['user_id'];
 
             req.getOrm().typeorm.connection.manager

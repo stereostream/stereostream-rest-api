@@ -75,6 +75,7 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                         chat_logger.info(`${new Date().toISOString()}\tuser\tdisconnected`);
                     });
                     socket.on('chat message', (msg: string) => {
+                        console.info('Received:', msg, ';');
                         if (msg == null || !msg) return;
                         const t0 = msg.indexOf('\t');
                         const t1 = msg.indexOf('\t', t0 + 1);
@@ -103,6 +104,7 @@ export const setupOrmApp = (models_and_routes: Map<string, any>,
                     });
 
                     // SignalingServer(app, io)(socket);
+                    // new HLSServer(app, {path: '/streams', dir: '/Users/samuel/repos/stereostream/Downloads'})
                 });
 
                 const authSdk = new AuthTestSDK(app);

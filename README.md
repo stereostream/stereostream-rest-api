@@ -17,6 +17,7 @@ StereoStream REST API.
 
   - Database, e.g.: Postgres. Set `RDBMS_URI` env var accordingly.
   - Redis. Set `REDIS_URL` env var accordingly; otherwise defaults are used.
+  - Define `STREREOSTREAM_BROADAST` directory and server (ffmpeg) to there
 
 ## Compile+run app
 
