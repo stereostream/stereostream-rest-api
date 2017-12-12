@@ -1,6 +1,6 @@
 {
   "name": "stereostream-rest-api",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "StereoStream backend REST API scaffold built on Node.JS in TypeScript with restify and TypeORM.",
   "main": "main.js",
   "author": "Samuel Marks <samuel@offscale.io>",
@@ -36,20 +36,20 @@
     "slugify": "^1.2.6",
     "socket.io": "^2.0.4",
     "tv4": "^1.3.0",
-    "typeorm": "0.1.7",
+    "typeorm": "0.1.8",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
     "@types/async": "^2.0.45",
     "@types/bunyan": "1.8.3",
-    "@types/chai": "^4.0.6",
+    "@types/chai": "^4.0.10",
     "@types/faker": "^4.1.2",
-    "@types/ioredis": "3.2.1",
+    "@types/ioredis": "3.2.3",
     "@types/mathjs": "0.0.35",
     "@types/mime-types": "^2.1.0",
     "@types/mocha": "^2.2.44",
-    "@types/node": "^8.0.53",
-    "@types/redis": "^2.8.1",
+    "@types/node": "^8.0.58",
+    "@types/redis": "^2.8.2",
     "@types/restify": "^5.0.6",
     "@types/restify-errors": "^4.3.2",
     "@types/superagent": "^3.5.6",
@@ -58,10 +58,10 @@
     "@types/uuid": "^3.4.3",
     "chai": "^4.1.2",
     "chai-json-schema": "^1.5.0",
-    "chai-json-schema-ajv": "^1.0.0",
+    "chai-json-schema-ajv": "^2.0.0",
     "mocha": "4.0.1",
     "supertest": "^3.0.0",
-    "ts-node": "^3.3.0",
+    "ts-node": "^4.0.1",
     "typescript": "^2.6.2"
   }
 }
